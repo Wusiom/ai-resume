@@ -7,9 +7,45 @@ import {
   Res,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
+import { InterviewService } from './services/interview.service';
 @Controller('interview')
 export class InterviewController {
+  constructor(private interviewService: InterviewService) {}
+  @Post('analyze-resume')
+  @UseGuards(JwtAuthGuard)
+  async analyzeResume(
+    @Body() body: { position: string; resume: string; jobDescription: string },
+    @Request() req: Record<string, string>,
+  ) {
+    const result = await this.interviewService.analyzeResume(
+      req.userId,
+      body.position,
+      body.resume,
+      body.jobDescription,
+    );
+    return {
+      code: 200,
+      data: result,
+    };
+  }
+
+  @Post('continue-conversation')
+  async continueConversation(
+    @Body() body: { sessionId: string; question: string },
+  ) {
+    const result = await this.interviewService.continueConversation(
+      body.sessionId,
+      body.question,
+    );
+
+    return {
+      code: 200,
+      data: {
+        response: result,
+      },
+    };
+  }
+
   // 接口 1：简历押题
   @Post('resume/quiz/stream')
   @UseGuards(JwtAuthGuard)
